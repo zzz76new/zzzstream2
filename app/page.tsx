@@ -20,36 +20,23 @@ export default function Home() {
   };
 
   useEffect(() => {
-    async function fetchHomeData() {
+    async function loadData() {
       try {
         setLoading(true);
-
-        // 1. Fetch Phim Mới Cập Nhật
-        const res1 = await fetch('https://phimapi.com/danh-sach/phim-moi-cap-nhat?page=1', { cache: 'no-store' });
-        const data1 = await res1.json();
-        setNewMovies(data1.items || data1.data?.items || []);
-
-        // 2. Fetch Phim Bộ
-        const res2 = await fetch('https://phimapi.com/v1/api/danh-sach/phim-bo?page=1', { cache: 'no-store' });
-        const data2 = await res2.json();
-        setSeriesMovies(data2.items || data2.data?.items || []);
-
-        // 3. Fetch Phim Lẻ
-        const res3 = await fetch('https://phimapi.com/v1/api/danh-sach/phim-le?page=1', { cache: 'no-store' });
-        const data3 = await res3.json();
-        setSingleMovies(data3.items || data3.data?.items || []);
-
+        const res = await fetch('/api/movies');
+        const json = await res.json();
+        setNewMovies(json.newMovies || []);
+        setSeriesMovies(json.seriesMovies || []);
+        setSingleMovies(json.singleMovies || []);
       } catch (err) {
-        console.error('Lỗi tải danh sách phim:', err);
+        console.error('Lỗi load phim:', err);
       } finally {
         setLoading(false);
       }
     }
-
-    fetchHomeData();
+    loadData();
   }, []);
 
-  // Hàm render một hàng danh sách phim
   const renderMovieGrid = (movies: any[]) => {
     if (loading) {
       return (
@@ -59,7 +46,7 @@ export default function Home() {
       );
     }
 
-    if (movies.length === 0) {
+    if (!movies || movies.length === 0) {
       return <p className="text-zinc-500 text-xs">Đang cập nhật danh sách phim...</p>;
     }
 
@@ -109,7 +96,6 @@ export default function Home() {
         <Navbar />
 
         <main className="p-4 sm:p-6 lg:p-8 space-y-10">
-          {/* Mục 1: Phim Mới Cập Nhật */}
           <section className="space-y-4">
             <h2 className="text-lg sm:text-xl font-black text-white border-l-4 border-[#e10111] pl-3">
               Phim Mới Cập Nhật
@@ -117,7 +103,6 @@ export default function Home() {
             {renderMovieGrid(newMovies)}
           </section>
 
-          {/* Mục 2: Phim Bộ Nổi Bật */}
           <section className="space-y-4">
             <h2 className="text-lg sm:text-xl font-black text-white border-l-4 border-[#e10111] pl-3">
               Phim Bộ Nổi Bật
@@ -125,7 +110,6 @@ export default function Home() {
             {renderMovieGrid(seriesMovies)}
           </section>
 
-          {/* Mục 3: Phim Lẻ Bắt Mắt */}
           <section className="space-y-4">
             <h2 className="text-lg sm:text-xl font-black text-white border-l-4 border-[#e10111] pl-3">
               Phim Lẻ Bắt Mắt
