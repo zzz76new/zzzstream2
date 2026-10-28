@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
@@ -12,6 +12,7 @@ export default function Home() {
   const [seriesMovies, setSeriesMovies] = useState<any[]>([]);
   const [singleMovies, setSingleMovies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const getImageUrl = (url: string) => {
     if (!url) return '';
@@ -24,22 +25,19 @@ export default function Home() {
       try {
         setLoading(true);
 
-        // Gọi trực tiếp 3 API từ KKPhim ngay trên trình duyệt
-        const [res1, res2, res3] = await Promise.all([
-          fetch('https://phimapi.com/danh-sach/phim-moi-cap-nhat?page=1'),
-          fetch('https://phimapi.com/v1/api/danh-sach/phim-bo?page=1'),
-          fetch('https://phimapi.com/v1/api/danh-sach/phim-le?page=1')
-        ]);
+        setError('');
+        const response = await fetch('/api/movies', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Movies API returned ${response.status}`);
 
-        const data1 = await res1.json();
-        const data2 = await res2.json();
-        const data3 = await res3.json();
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
 
-        setNewMovies(data1.items || data1.data?.items || []);
-        setSeriesMovies(data2.items || data2.data?.items || data2.data || []);
-        setSingleMovies(data3.items || data3.data?.items || data3.data || []);
+        setNewMovies(Array.isArray(data.newMovies) ? data.newMovies : []);
+        setSeriesMovies(Array.isArray(data.seriesMovies) ? data.seriesMovies : []);
+        setSingleMovies(Array.isArray(data.singleMovies) ? data.singleMovies : []);
       } catch (err) {
-        console.error('Lỗi fetch phim:', err);
+        console.error('Movie list request failed:', err);
+        setError('Could not load movies. Please refresh the page.');
       } finally {
         setLoading(false);
       }
@@ -58,7 +56,7 @@ export default function Home() {
     }
 
     if (!movies || movies.length === 0) {
-      return <p className="text-zinc-500 text-xs">Đang cập nhật danh sách phim...</p>;
+      return <p className="text-zinc-500 text-xs">Chưa có phim trong danh sách này.</p>;
     }
 
     return (
@@ -107,6 +105,9 @@ export default function Home() {
         <Navbar />
 
         <main className="p-4 sm:p-6 lg:p-8 space-y-10">
+          {error && (
+            <div role="alert" className="rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-200">{error}</div>
+          )}
           <section className="space-y-4">
             <h2 className="text-lg sm:text-xl font-black text-white border-l-4 border-[#e10111] pl-3">
               Phim Mới Cập Nhật
@@ -133,3 +134,4 @@ export default function Home() {
     </div>
   );
 }
+
