@@ -20,21 +20,32 @@ export default function Home() {
   };
 
   useEffect(() => {
-    async function loadData() {
+    async function fetchAllMovies() {
       try {
         setLoading(true);
-        const res = await fetch('/api/movies');
-        const json = await res.json();
-        setNewMovies(json.newMovies || []);
-        setSeriesMovies(json.seriesMovies || []);
-        setSingleMovies(json.singleMovies || []);
+
+        // Gọi trực tiếp 3 API từ KKPhim ngay trên trình duyệt
+        const [res1, res2, res3] = await Promise.all([
+          fetch('https://phimapi.com/danh-sach/phim-moi-cap-nhat?page=1'),
+          fetch('https://phimapi.com/v1/api/danh-sach/phim-bo?page=1'),
+          fetch('https://phimapi.com/v1/api/danh-sach/phim-le?page=1')
+        ]);
+
+        const data1 = await res1.json();
+        const data2 = await res2.json();
+        const data3 = await res3.json();
+
+        setNewMovies(data1.items || data1.data?.items || []);
+        setSeriesMovies(data2.items || data2.data?.items || data2.data || []);
+        setSingleMovies(data3.items || data3.data?.items || data3.data || []);
       } catch (err) {
-        console.error('Lỗi load phim:', err);
+        console.error('Lỗi fetch phim:', err);
       } finally {
         setLoading(false);
       }
     }
-    loadData();
+
+    fetchAllMovies();
   }, []);
 
   const renderMovieGrid = (movies: any[]) => {
