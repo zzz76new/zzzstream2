@@ -9,7 +9,7 @@ import MovieCard from '@/components/MovieCard';
 import { UnifiedMovie } from '@/types/movie';
 import { Loader2, SearchX } from 'lucide-react';
 
-function SearchResults() {
+function SearchResultsContent() {
   const searchParams = useSearchParams();
   const keyword = searchParams.get('keyword') || '';
   const [movies, setMovies] = useState<UnifiedMovie[]>([]);
@@ -60,7 +60,7 @@ function SearchResults() {
           Kết quả tìm kiếm cho: <span className="text-[#e10111]">"{keyword}"</span>
         </h1>
         <p className="text-xs text-zinc-400">
-          Hiển thị tất cả các phim khớp hoặc liên quan đến từ khóa bạn đã gõ
+          Hiển thị danh sách các phim khớp hoặc liên quan đến từ khóa
         </p>
       </div>
 
@@ -77,7 +77,9 @@ function SearchResults() {
       ) : (
         <div className="flex flex-col items-center justify-center py-16 space-y-3">
           <SearchX className="w-12 h-12 text-zinc-600" />
-          <p className="text-sm text-zinc-400">Không tìm thấy phim nào liên quan đến từ khóa "{keyword}".</p>
+          <p className="text-sm text-zinc-400">
+            Không tìm thấy phim nào khớp với từ khóa "{keyword}".
+          </p>
         </div>
       )}
     </main>
@@ -97,7 +99,7 @@ export default function SearchPage() {
             </div>
           }
         >
-          <SearchResults />
+          <SearchResultsContent />
         </Suspense>
       </div>
       <BottomNav />

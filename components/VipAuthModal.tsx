@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { VIP_USERS } from '@/lib/vipUsers';
 
+
 export default function VipAuthModal() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [username, setUsername] = useState('');

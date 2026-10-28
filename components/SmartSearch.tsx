@@ -13,7 +13,6 @@ export default function SmartSearch() {
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Đóng dropdown gợi ý khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -24,7 +23,6 @@ export default function SmartSearch() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Lấy dữ liệu gợi ý trực tiếp khi gõ từ 2 ký tự
   useEffect(() => {
     const trimmedQuery = query.trim();
     if (trimmedQuery.length < 2) {
@@ -39,7 +37,8 @@ export default function SmartSearch() {
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(
-          `https://phim.nguonc.com/api/films/search?keyword=${encodeURIComponent(trimmedQuery)}&page=1`
+          `https://phim.nguonc.com/api/films/search?keyword=${encodeURIComponent(trimmedQuery)}&page=1`,
+          { cache: 'no-store' }
         );
         if (res.ok) {
           const json = await res.json();
@@ -60,7 +59,6 @@ export default function SmartSearch() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Xử lý khi bấm phím ENTER hoặc bấm xem tất cả
   const handleSearchSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (query.trim()) {
@@ -70,19 +68,19 @@ export default function SmartSearch() {
   };
 
   return (
-    <div ref={searchRef} className="relative flex-1 max-w-3xl mx-2 sm:mx-6">
+    <div ref={searchRef} className="relative w-full max-w-xl">
       <form onSubmit={handleSearchSubmit} className="relative w-full">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim().length >= 2 && setIsOpen(true)}
           placeholder="Bạn muốn thưởng thức phim gì nè!!!"
-          className="w-full bg-[#1c1b1b] text-sm sm:text-base text-white pl-12 pr-10 py-3 rounded-2xl border border-[#353534] focus:outline-none focus:border-[#e10111] focus:ring-1 focus:ring-[#e10111] transition shadow-inner placeholder:text-zinc-500 font-medium"
+          className="w-full bg-[#1c1b1b] text-xs sm:text-sm text-white pl-10 pr-9 py-2.5 rounded-full border border-[#353534] focus:outline-none focus:border-[#e10111] transition placeholder:text-zinc-500 font-medium"
         />
         {loading ? (
-          <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#e10111] animate-spin" />
+          <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#e10111] animate-spin" />
         ) : query ? (
           <button
             type="button"
@@ -91,20 +89,19 @@ export default function SmartSearch() {
               setResults([]);
               setIsOpen(false);
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         ) : null}
       </form>
 
-      {/* Popup gợi ý các phim liên quan trực tiếp */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[#1c1b1b] border border-[#353534] rounded-2xl shadow-[0_15px_35px_rgba(0,0,0,0.9)] overflow-hidden z-50 max-h-[450px] overflow-y-auto no-scrollbar">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-[#1c1b1b] border border-[#353534] rounded-2xl shadow-2xl overflow-hidden z-50 max-h-[380px] overflow-y-auto no-scrollbar">
           {loading ? (
             <div className="p-4 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
               <Loader2 className="w-4 h-4 text-[#e10111] animate-spin" />
-              <span>Đang tra cứu kho phim...</span>
+              <span>Đang tìm kiếm phim...</span>
             </div>
           ) : results.length > 0 ? (
             <div className="divide-y divide-[#2a2a2a]">
@@ -113,41 +110,35 @@ export default function SmartSearch() {
                   key={item.slug}
                   href={`/phim/${item.slug}`}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3.5 p-3.5 hover:bg-[#2a2a2a] transition group"
+                  className="flex items-center gap-3 p-3 hover:bg-[#2a2a2a] transition group"
                 >
                   <img
                     src={item.poster_url || item.thumb_url}
                     alt={item.name}
-                    className="w-11 h-16 object-cover rounded-xl border border-[#353534] shrink-0 shadow-md"
+                    referrerPolicy="no-referrer"
+                    className="w-10 h-14 object-cover rounded-lg border border-[#353534] shrink-0"
                   />
-                  <div className="flex flex-col min-w-0 flex-1 space-y-1">
-                    <h4 className="text-sm font-bold text-white group-hover:text-[#ffb4aa] truncate transition">
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <h4 className="text-xs font-bold text-white group-hover:text-[#ffb4aa] truncate transition">
                       {item.name}
                     </h4>
-                    <p className="text-xs text-zinc-400 truncate">
+                    <span className="text-[11px] text-zinc-400 truncate">
                       {item.original_name || item.year || 'Đang cập nhật'}
-                    </p>
-                    <div className="flex items-center gap-2 text-[10px]">
-                      <span className="px-2 py-0.5 rounded bg-[#e10111]/20 text-[#ffb4aa] font-bold uppercase">
-                        {item.quality || 'HD'}
-                      </span>
-                      <span className="text-zinc-400">{item.language || 'Vietsub'}</span>
-                    </div>
+                    </span>
                   </div>
                 </Link>
               ))}
-
               <button
+                type="button"
                 onClick={() => handleSearchSubmit()}
-                className="w-full py-3 text-center text-xs font-bold text-[#ffb4aa] bg-[#2a2a2a]/80 hover:bg-[#2a2a2a] transition flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 text-center text-xs font-bold text-[#ffb4aa] bg-[#2a2a2a]/60 hover:bg-[#2a2a2a] transition"
               >
-                <span>Xem tất cả phim liên quan đến "{query}"</span>
+                Xem tất cả kết quả cho "{query}"
               </button>
             </div>
           ) : (
-            <div className="p-6 text-center space-y-2">
-              <Film className="w-8 h-8 text-zinc-600 mx-auto" />
-              <p className="text-xs text-zinc-400">Bấm Enter để tìm kiếm toàn bộ phim khớp với "{query}"</p>
+            <div className="p-4 text-center">
+              <p className="text-xs text-zinc-400">Bấm Enter để tìm tất cả phim khớp với "{query}"</p>
             </div>
           )}
         </div>
